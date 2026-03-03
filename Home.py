@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-API_URL = "http://localhost:8000"  # Change for production
+API_URL = "https://airbnb-price-pred-backend.onrender.com"
 
 st.title("AirBnB Price Predictor")
 st.markdown("Get instant price predictions for your AirBnB listing")
