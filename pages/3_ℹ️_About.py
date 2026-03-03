@@ -34,8 +34,8 @@ This project predicts AirBnB nightly prices using machine learning on 51,000+ li
 - **Visualization**: Plotly, Matplotlib
 
 ## 👨‍💻 Developer
-[Your Name]
-- GitHub: [your-github]
-- LinkedIn: [your-linkedin]
-- Email: [your-email]
+Linh Hoang
+- GitHub: https://github.com/linhoangce/comp3948_predictive_modeling/tree/main/assignment1_housing_price_pred_reg
+- LinkedIn: https://www.linkedin.com/in/lhoang-bcit/
+- Email: linhoang.ce@gmail.com
 """)
