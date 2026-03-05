@@ -40,8 +40,8 @@ st.markdown("---")
 with st.sidebar:
     st.header("Model Info")
     st.metric("Model", "XGBoost")
-    st.metric("Test RMSE", "$89.50")  # Your actual result
-    st.metric("R² Score", "0.68")  # Your actual result
+    st.metric("Test RMSE", "$101.50")  # Your actual result
+    st.metric("R² Score", "0.60")  # Your actual result
     st.markdown("---")
     st.markdown("**Tech Stack:**")
     st.markdown("- XGBoost Regressor")
@@ -79,7 +79,7 @@ with col3:
         host_verified = st.checkbox("Host Identity Verified", value=True)
 
 # Predict button
-if st.button("Predict Price", type="primary", use_container_width=True):
+if st.button("Predict Price", type="primary", width='stretch'):
     with st.spinner("Calculating price..."):
         # Prepare request
         payload = {
@@ -115,40 +115,6 @@ if st.button("Predict Price", type="primary", use_container_width=True):
             # Main price display
             col1, col2, col3 = st.columns([2, 1, 1])
 
-            # Model comparison
-            with st.expander("🔬 Compare Both Models"):
-                col1, col2 = st.columns(2)
-
-                # Get predictions from both models
-                payload_ols = {**payload, "model_type": "ols"}
-                payload_xgb = {**payload, "model_type": "xgboost"}
-
-                try:
-                    result_ols = requests.post(f"{API_URL}/predict", json=payload_ols, timeout=10).json()
-                    result_xgb = requests.post(f"{API_URL}/predict", json=payload_xgb, timeout=10).json()
-
-                    with col1:
-                        st.markdown("### OLS Regression")
-                        st.metric("Predicted Price", f"${result_ols['predicted_price']:.2f}")
-                        st.caption(f"RMSE: $119.16 | R²: 0.51")
-
-                    with col2:
-                        st.markdown("### XGBoost")
-                        st.metric(
-                            "Predicted Price",
-                            f"${result_xgb['predicted_price']:.2f}",
-                            delta=f"${result_xgb['predicted_price'] - result_ols['predicted_price']:.2f}"
-                        )
-                        st.caption(f"RMSE: $89.50 | R²: 0.68")
-
-                    # Show difference
-                    diff = abs(result_xgb['predicted_price'] - result_ols['predicted_price'])
-                    st.info(
-                        f"💡 **Price difference between models:** ${diff:.2f} ({(diff / result_ols['predicted_price'] * 100):.1f}%)")
-
-                except Exception as e:
-                    st.error(f"Error comparing models: {str(e)}")
-
             with col1:
                 st.metric(
                     "Predicted Nightly Price",
@@ -167,6 +133,42 @@ if st.button("Predict Price", type="primary", use_container_width=True):
                     "Upper Bound (95% CI)",
                     f"${result['confidence_interval']['upper']:.2f}"
                 )
+
+
+            # Model comparison
+            with st.expander("🔬 Compare Both Models"):
+                col1, col2 = st.columns(2)
+
+                # Get predictions from both models
+                payload_ols = {**payload, "model_type": "ols"}
+                payload_xgb = {**payload, "model_type": "xgboost"}
+
+                try:
+                    result_ols = requests.post(f"{API_URL}/predict", json=payload_ols, timeout=10).json()
+                    result_xgb = requests.post(f"{API_URL}/predict", json=payload_xgb, timeout=10).json()
+
+                    with col1:
+                        st.markdown("### OLS Regression")
+                        st.metric("Predicted Price", f"${result_ols['predicted_price']:.2f}")
+                        st.caption(f"RMSE: $114.75 | R²: 0.54")
+
+                    with col2:
+                        st.markdown("### XGBoost")
+                        st.metric(
+                            "Predicted Price",
+                            f"${result_xgb['predicted_price']:.2f}",
+                            delta=f"${result_xgb['predicted_price'] - result_ols['predicted_price']:.2f}"
+                        )
+                        st.caption(f"RMSE: $101.5 | R²: 0.60")
+
+                    # Show difference
+                    diff = abs(result_xgb['predicted_price'] - result_ols['predicted_price'])
+                    st.info(
+                        f"💡 **Price difference between models:** ${diff:.2f} ({(diff / result_ols['predicted_price'] * 100):.1f}%)")
+
+                except Exception as e:
+                    st.error(f"Error comparing models: {str(e)}")
+
 
             # Visualizations
             col1, col2 = st.columns(2)
@@ -197,12 +199,14 @@ if st.button("Predict Price", type="primary", use_container_width=True):
                     }
                 ))
 
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
 
             with col2:
                 # Top features
                 st.subheader("Top Price Drivers")
                 features = result['top_features']
+
+                # print(f"xgb features: {features}")
 
                 fig = go.Figure(go.Bar(
                     x=[f['importance'] for f in features],
@@ -213,9 +217,10 @@ if st.button("Predict Price", type="primary", use_container_width=True):
                 fig.update_layout(
                     xaxis_title="Importance",
                     yaxis_title="Feature",
-                    height=300
+                    height=400,
+                    width=400
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
 
             # Insights
             st.subheader("Pricing Insights")
