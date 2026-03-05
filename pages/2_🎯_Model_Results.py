@@ -68,23 +68,23 @@ with col1:
         'RMSE': [round(rmse, 2), 114.75, 0.0],
         'R²': [round(r2, 3), 0.55, 0.0],
     })
-    st.dataframe(comparison_df, use_container_width=True)
+    st.dataframe(comparison_df, width="stretch")
 
 with col2:
     fig_comp = px.bar(comparison_df, x='Model', y='RMSE', color='Model',
                       title='Model RMSE Comparison (Lower is Better)')
-    st.plotly_chart(fig_comp, use_container_width=True)
+    st.plotly_chart(fig_comp, width="stretch")
 
 st.divider()
 
 
 st.header("Feature Selection")
 if os.path.exists("assets/feature_selection.png"):
-    st.image("assets/feature_selection.png", use_container_width=True)
+    st.image("assets/feature_selection.png", width="stretch")
 else:
     st.info("Place 'feature_selection.png' in assets folder to display.")
 
-st.image("assets/training.png", use_container_width=True)
+st.image("assets/training.png", width="stretch")
 
 
 st.header("Visualizing Prediction Accuracy")
@@ -128,11 +128,11 @@ fig.update_layout(
     legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01)
 )
 
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width="stretch")
 
 st.header("Performance by Price Range")
 if os.path.exists("assets/price_range_pred.png"):
-    st.image("assets/price_range_pred.png", use_container_width=True)
+    st.image("assets/price_range_pred.png", width="stretch")
 else:
     st.info("Place 'price_range_pred.png' in assets folder to display.")
 
@@ -150,4 +150,4 @@ fig_res = px.scatter(
 )
 fig_res.add_hline(y=0, line_dash="dash", line_color="red")
 
-st.plotly_chart(fig_res, use_container_width=True)
+st.plotly_chart(fig_res, width="stretch")

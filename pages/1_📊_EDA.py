@@ -82,7 +82,7 @@ fig_price = px.box(
     title="Price Spread across Cities",
     template="plotly_white"
 )
-st.plotly_chart(fig_price, use_container_width=True, key="eda_price_box")
+st.plotly_chart(fig_price, width="stretch", key="eda_price_box")
 
 # Row 2: Neighborhoods
 st.header("Neighborhood Pricing Analysis")
@@ -98,7 +98,7 @@ fig_neigh = px.bar(
     title="Top 15 Most Expensive Neighborhoods (Median)"
 )
 fig_neigh.update_layout(yaxis={'categoryorder': 'total ascending'})
-st.plotly_chart(fig_neigh, use_container_width=True, key="eda_neigh_bar")
+st.plotly_chart(fig_neigh, width="stretch", key="eda_neigh_bar")
 
 # Row 3: Correlation & Property Types
 col1, col2 = st.columns(2)
@@ -109,7 +109,7 @@ with col1:
     corr_cols = ["price", "accommodates", "bathrooms", "bedrooms", "number_of_reviews"]
     corr_matrix = df[corr_cols].corr()
     fig_corr = px.imshow(corr_matrix, text_auto=".2f", color_continuous_scale='RdBu_r')
-    st.plotly_chart(fig_corr, use_container_width=True, key="eda_corr_heat")
+    st.plotly_chart(fig_corr, width="stretch", key="eda_corr_heat")
 
 with col2:
     st.header("Property Hierarchy")
@@ -119,7 +119,7 @@ with col2:
         values='price',
         color='property_type_grouped'
     )
-    st.plotly_chart(fig_sun, use_container_width=True, key="eda_prop_sun")
+    st.plotly_chart(fig_sun, width="stretch", key="eda_prop_sun")
 
 # --- 5. INSIGHTS ---
 st.divider()
