@@ -14,9 +14,9 @@ def load_data():
     try:
         # Try loading your actual files
         df = pd.read_csv('data/AirBNB.csv')
-        y_pred_df = pd.read_csv('data/predictions.csv')
-        y_actual = df['price'].values
-        y_pred = y_pred_df.squeeze().values
+        y_df = pd.read_csv('data/xgb_predictions_aligned.csv')
+        y_actual = y_df['actual'].values
+        y_pred = y_df['prediction'].values
     except FileNotFoundError:
         # Create sample data if files are missing so the script doesn't crash
         st.warning("Data files not found. Displaying synthetic sample data.")
@@ -30,13 +30,12 @@ def load_data():
 
 y_actual, y_pred = load_data()
 
-
 # --- 3. OPTIMIZED CALCULATIONS (CACHED) ---
 @st.cache_data
 def get_plot_metrics(y_actual, y_pred):
     # Downsample for performance (Plotly struggles with >5k points in SVG)
     if len(y_actual) > 5000:
-        indices = np.random.choice(len(y_actual), 2000, replace=False)
+        indices = np.random.choice(len(y_actual), 5000, replace=False)
         y_a_sub, y_p_sub = y_actual[indices], y_pred[indices]
     else:
         y_a_sub, y_p_sub = y_actual, y_pred
@@ -56,6 +55,8 @@ r2 = r2_score(y_actual, y_pred)
 rmse = root_mean_squared_error(y_actual, y_pred)
 mae = np.mean(np.abs(y_actual - y_pred))
 
+print(f"**********: {rmse}")
+
 st.title("🎯 Model Training Results")
 
 col1, col2 = st.columns([1, 1.5])
@@ -63,9 +64,9 @@ col1, col2 = st.columns([1, 1.5])
 with col1:
     st.header("Model Comparison")
     comparison_df = pd.DataFrame({
-        'Model': ['OLS (Final)', 'XGBoost', 'Random Forest'],
-        'RMSE': [round(rmse, 2), 89.5, 92.3],
-        'R²': [round(r2, 3), 0.68, 0.65],
+        'Model': ['XGBoost (Final)', 'OLS', 'Random Forest'],
+        'RMSE': [round(rmse, 2), 114.75, 0.0],
+        'R²': [round(r2, 3), 0.55, 0.0],
     })
     st.dataframe(comparison_df, use_container_width=True)
 

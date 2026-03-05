@@ -10,10 +10,31 @@ st.set_page_config(
     layout="wide"
 )
 
-API_URL = "https://airbnb-price-pred-backend.onrender.com"
+API_URL = "http://localhost:8000"
 
 st.title("AirBnB Price Predictor")
 st.markdown("Get instant price predictions for your AirBnB listing")
+
+# Add model selector at the top after header
+st.markdown("---")
+col1, col2, col3 = st.columns([1, 2, 1])
+
+with col2:
+    model_choice = st.radio(
+        "🤖 Select Prediction Model",
+        ["OLS Regression", "XGBoost"],
+        horizontal=True,
+        help="Compare predictions from different models"
+    )
+
+    # Show model info
+    if model_choice == "OLS Regression":
+        st.info(" **OLS**: Linear model | RMSE: $114.75 | R²: 0.54 | Fast predictions")
+    else:
+        st.info(" **XGBoost**: Tree-based ensemble | RMSE: $101.50 | R²: 0.60 | Higher accuracy")
+
+st.markdown("---")
+
 
 # Sidebar for model info
 with st.sidebar:
@@ -40,21 +61,21 @@ with col1:
 
 with col2:
     st.subheader("Capacity")
-    accommodates = st.slider("Guests", 1, 16, 4)
-    bedrooms = st.slider("Bedrooms", 0, 10, 2)
-    bathrooms = st.slider("Bathrooms", 0.0, 8.0, 1.5, 0.5)
-    beds = st.slider("Beds", 1, 16, 2)
+    accommodates = st.slider("Guests", 1, 20, 4)
+    bedrooms = st.slider("Bedrooms", 0, 20, 2)
+    bathrooms = st.slider("Bathrooms", 0.0, 20.0, 1.5, 0.5)
+    beds = st.slider("Beds", 1, 20, 2)
 
 with col3:
     st.subheader("Pricing & Policies")
-    cleaning_fee = st.number_input("Cleaning Fee ($)", 0, 500, 50)
+    cleaning_fee = st.number_input("Cleaning Fee ($)", 0, 500, 10)
     cancellation = st.selectbox("Cancellation Policy",
                                 ["flexible", "moderate", "strict", "super_strict_60"])
 
     with st.expander("⚙ Advanced Options"):
-        review_score = st.slider("Review Score (0-100)", 0, 100, 90)
-        num_reviews = st.number_input("Number of Reviews", 0, 500, 10)
-        host_response_rate = st.slider("Host Response Rate (%)", 0, 100, 95)
+        review_score = st.slider("Review Score (0-100)", 0, 100, 0)
+        num_reviews = st.number_input("Number of Reviews", 0, 500, 0)
+        host_response_rate = st.slider("Host Response Rate (%)", 0, 100, 0)
         host_verified = st.checkbox("Host Identity Verified", value=True)
 
 # Predict button
@@ -63,31 +84,70 @@ if st.button("Predict Price", type="primary", use_container_width=True):
         # Prepare request
         payload = {
             "city": city,
-            "accommodates": accommodates,
-            "bedrooms": bedrooms,
-            "bathrooms": bathrooms,
-            "beds": beds,
+            "accommodates": int(accommodates),
+            "bedrooms": int(bedrooms),
+            "bathrooms": float(bathrooms),
+            "beds": int(beds),
             "room_type": room_type,
             "property_type": property_type,
             "cancellation_policy": cancellation,
-            "cleaning_fee": cleaning_fee,
-            "review_scores_rating": review_score,
-            "number_of_reviews": num_reviews,
-            "host_response_rate": host_response_rate,
-            "host_identity_verified": host_verified
+            "cleaning_fee": float(cleaning_fee),
+            "review_scores_rating": float(review_score),
+            "number_of_reviews": int(num_reviews),
+            "host_response_rate": float(host_response_rate),
+            "host_identity_verified": bool(host_verified),
+            "model_type": "xgboost" if model_choice == "XGBoost" else "ols"  # ADD THIS
         }
 
         try:
-            # Call API
-            response = requests.post(f"{API_URL}/predict", json=payload)
+            response = requests.post(f"{API_URL}/predict", json=payload, timeout=10)
             response.raise_for_status()
             result = response.json()
 
-            # Display results
             st.success("✅ Prediction Complete!")
+
+
+            # Display which model was used
+            st.markdown(f"## 🎉 Prediction Results ({result['model']})")
+
+            # Display results
 
             # Main price display
             col1, col2, col3 = st.columns([2, 1, 1])
+
+            # Model comparison
+            with st.expander("🔬 Compare Both Models"):
+                col1, col2 = st.columns(2)
+
+                # Get predictions from both models
+                payload_ols = {**payload, "model_type": "ols"}
+                payload_xgb = {**payload, "model_type": "xgboost"}
+
+                try:
+                    result_ols = requests.post(f"{API_URL}/predict", json=payload_ols, timeout=10).json()
+                    result_xgb = requests.post(f"{API_URL}/predict", json=payload_xgb, timeout=10).json()
+
+                    with col1:
+                        st.markdown("### OLS Regression")
+                        st.metric("Predicted Price", f"${result_ols['predicted_price']:.2f}")
+                        st.caption(f"RMSE: $119.16 | R²: 0.51")
+
+                    with col2:
+                        st.markdown("### XGBoost")
+                        st.metric(
+                            "Predicted Price",
+                            f"${result_xgb['predicted_price']:.2f}",
+                            delta=f"${result_xgb['predicted_price'] - result_ols['predicted_price']:.2f}"
+                        )
+                        st.caption(f"RMSE: $89.50 | R²: 0.68")
+
+                    # Show difference
+                    diff = abs(result_xgb['predicted_price'] - result_ols['predicted_price'])
+                    st.info(
+                        f"💡 **Price difference between models:** ${diff:.2f} ({(diff / result_ols['predicted_price'] * 100):.1f}%)")
+
+                except Exception as e:
+                    st.error(f"Error comparing models: {str(e)}")
 
             with col1:
                 st.metric(
@@ -174,10 +234,11 @@ if st.button("Predict Price", type="primary", use_container_width=True):
             st.error(f"Error connecting to prediction service: {str(e)}")
             st.info("Make sure the FastAPI backend is running on http://localhost:8000")
 
+
 # Quick tips
 with st.expander("Tips for Better Pricing"):
     st.markdown("""
-    - **Location matters**: SF and NYC typically command higher prices
+    - **Location matters**: LA and DC typically command higher average prices
     - **Entire home** listings price 40-60% higher than private rooms
     - **Reviews count**: Properties with 20+ reviews get 15% premium
     - **Cleaning fee**: Keep under $100 for better booking rates
