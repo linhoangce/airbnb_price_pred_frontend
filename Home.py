@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-API_URL = "http://localhost:8000"
+API_URL = "https://linhoang-airbnb-price-prediction.hf.space"
 
 st.title("AirBnB Price Predictor")
 st.markdown("Get instant price predictions for your AirBnB listing")
